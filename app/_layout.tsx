@@ -32,8 +32,9 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
         <Stack.Screen name="index" />
-        <Stack.Screen name="home" options={{ headerShown: true, title: 'Home' }} />
-        <Stack.Screen name="doctor" />
+        {/* Remove the component prop as it's not needed */}
+        {/* <Stack.Screen name="Home" component={HomePage} /> */}
+        {/* <Stack.Screen name="Doctors" component={DoctorList} /> */}
       </Stack>
     </ThemeProvider>
   );
