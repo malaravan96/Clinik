@@ -31,6 +31,8 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
+        <Stack.Screen name="index" />
+        <Stack.Screen name="home" options={{ headerShown: true, title: 'Home' }} />
         <Stack.Screen name="doctor" />
       </Stack>
     </ThemeProvider>
