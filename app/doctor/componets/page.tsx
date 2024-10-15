@@ -19,11 +19,10 @@ interface DoctorDetailsDialogProps {
     visible: boolean;
     onHide: () => void;
     doctor: Doctor | null;
-    maleImg: any;
-    femaleImg: any;
+   
 }
 
-const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({ visible, onHide, doctor, maleImg, femaleImg }) => {
+const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({ visible, onHide, doctor}) => {
     return (
         <Portal>
             <Dialog visible={visible} onDismiss={onHide}>
@@ -38,10 +37,7 @@ const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({ visible, onHi
 
                     <View style={styles.dialogContent}>
                         <View style={styles.avatarContainer}>
-                            <Image
-                                source={doctor?.gender === 'M' ? maleImg : femaleImg}
-                                style={styles.dialogAvatar}
-                            />
+                           
                             {doctor?.isActive && (
                                 <IconButton
                                     icon={() => (

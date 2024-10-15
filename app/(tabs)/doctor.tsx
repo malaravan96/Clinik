@@ -4,10 +4,11 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  Image,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Card } from 'react-native-paper';
+import { Card, IconButton } from 'react-native-paper'; // Import IconButton
 
 // Define the type for a doctor
 interface Doctor {
@@ -23,6 +24,8 @@ const DoctorList: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const MaleImg = require('../../assets/images/profile/1.png');
+  const FemaleImg = require('../../assets/images/profile/5.png');
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -59,11 +62,15 @@ const DoctorList: React.FC = () => {
   const renderDoctor = ({ item }: { item: Doctor }) => (
     <Card style={styles.card}>
       <Card.Content>
+        <Image source={item.gender === 'Male' ? MaleImg : FemaleImg} style={styles.avatar} />
         <Text style={styles.name}>{item.name}</Text>
+
+        {/* Gender */}
         <Text>Gender: {item.gender}</Text>
         <Text>Qualification: {item.qualification}</Text>
         <Text>Experience: {item.experienceYears} years</Text>
         <Text>Contact: {item.contactPhone}</Text>
+        <IconButton icon="eye" size={16} onPress={() => {}} />
       </Card.Content>
     </Card>
   );
@@ -85,6 +92,12 @@ const styles = StyleSheet.create({
   card: {
     marginVertical: 8,
     padding: 16,
+  },
+  avatar: {
+    width: 65,
+    height: 65,
+    borderRadius: 22.5,
+    marginBottom: 5,
   },
   name: {
     fontSize: 18,
