@@ -1,163 +1,156 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { Portal, Dialog, Paragraph, IconButton } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Assuming you're using MaterialCommunityIcons
+import React, { useState } from 'react';
+import { Text, Image, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Dialog, Portal, Button, IconButton } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import ReviewList from './review';
 
 interface Doctor {
-    providerId: string;
-    name: string;
-    qualification: string;
-    experienceYears: number;
-    averageRating: number;
-    ratingCount: number;
-    contactPhone: string;
-    gender: string;
-    isActive: boolean;
+  providerId: string;
+  name: string;
+  qualification: string;
+  experienceYears: number;
+  averageRating: number;
+  contactPhone: string;
+  ratingCount: number;
 }
 
 interface DoctorDetailsDialogProps {
-    visible: boolean;
-    onHide: () => void;
-    doctor: Doctor | null;
-   
+  visible: boolean;
+  hideDialog: () => void;
+  doctor: Doctor | null;
+  imageSource: any;
 }
 
-const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({ visible, onHide, doctor}) => {
-    return (
-        <Portal>
-            <Dialog visible={visible} onDismiss={onHide}>
-                <Dialog.Content>
-                    {/* Close button on top right */}
-                    <IconButton
-                        icon="close"
-                        size={24}
-                        onPress={onHide}
-                        style={styles.closeButton}
-                    />
+const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({
+  visible,
+  hideDialog,
+  doctor,
+  imageSource,
+}) => {
+  const [ratingDialogVisible, setRatingDialogVisible] = useState(false);
 
-                    <View style={styles.dialogContent}>
-                        <View style={styles.avatarContainer}>
-                           
-                            {doctor?.isActive && (
-                                <IconButton
-                                    icon={() => (
-                                        <Icon name="check-circle" size={24} color="green" />
-                                    )}
-                                    size={24}
-                                    style={styles.verificationIcon}
-                                />
-                            )}
-                        </View>
-                        <Text style={styles.dialogName}>{doctor?.name}</Text>
+  const openRatingDialog = () => setRatingDialogVisible(true);
+  const closeRatingDialog = () => setRatingDialogVisible(false);
 
-                        {/* Row with icons */}
-                        <View style={styles.iconRow}>
-                            <View style={styles.iconContainer}>
-                                <IconButton icon="phone" size={24} onPress={() => console.log('Phone pressed')} />
-                            </View>
-                            <View style={styles.iconContainer}>
-                                <IconButton icon="message" size={24} onPress={() => console.log('Message pressed')} />
-                            </View>
-                            <View style={styles.iconContainer}>
-                                <IconButton icon="share" size={24} onPress={() => console.log('Share pressed')} />
-                            </View>
-                            <View style={styles.iconContainer}>
-                                <IconButton icon="dots-vertical" size={24} onPress={() => console.log('Menu pressed')} />
-                            </View>
-                        </View>
+  return (
+    <Portal>
+      <Dialog visible={visible} onDismiss={hideDialog}>
+        <Dialog.Title>Doctor Details</Dialog.Title>
+        <Dialog.Content>
+          {doctor ? (
+            <>
+              <View style={styles.centeredContent}>
+                <Image source={imageSource} style={styles.avatar} />
+                <Text style={styles.doctorName}>{doctor.name}</Text>
+              </View>
 
-                        {/* Row with experience, rating count, and average rating */}
-                        <View style={styles.statsRow}>
-                            <View style={styles.statsBox}>
-                                <Text style={styles.statsValue}>{doctor?.experienceYears}</Text>
-                                <Text style={styles.statsLabel}>Years</Text>
-                            </View>
-                            <View style={styles.statsBox}>
-                                <Text style={styles.statsValue}>{doctor?.ratingCount}</Text>
-                                <Text style={styles.statsLabel}>Reviews</Text>
-                            </View>
-                            <View style={styles.statsBox}>
-                                <Text style={styles.statsValue}>{doctor?.averageRating}</Text>
-                                <Text style={styles.statsLabel}>Rating</Text>
-                            </View>
-                        </View>
-                    </View>
-                    <Paragraph>{doctor?.qualification}</Paragraph>
-                    <Paragraph>Contact: {doctor?.contactPhone}</Paragraph>
-                </Dialog.Content>
-            </Dialog>
-        </Portal>
-    );
+              <View style={styles.iconContainer}>
+                <View style={styles.iconBackground}>
+                  <IconButton icon="message" size={25} onPress={() => {}} />
+                </View>
+                <View style={styles.iconBackground}>
+                  <IconButton icon="phone" size={25} onPress={() => {}} />
+                </View>
+                <View style={styles.iconBackground}>
+                  <IconButton icon="share" size={25} onPress={() => {}} />
+                </View>
+                <View style={styles.iconBackground}>
+                  <IconButton icon="menu" size={25} onPress={() => {}} />
+                </View>
+              </View>
+
+              <View style={styles.infoBoxContainer}>
+                <TouchableOpacity style={styles.infoBox} onPress={openRatingDialog}>
+                  <Icon name="pen" size={20} color="#000" />
+                  <Text style={styles.infoText}>{doctor.ratingCount}</Text>
+                </TouchableOpacity>
+                <View style={styles.infoBox}>
+                  <Icon name="briefcase" size={20} color="#000" />
+                  <Text style={styles.infoText}>{doctor.experienceYears} years</Text>
+                </View>
+                <View style={styles.infoBox}>
+                  <Icon name="star" size={20} color="#000" />
+                  <Text style={styles.infoText}>{doctor.averageRating} rating</Text>
+                </View>
+              </View>
+
+              <Text style={styles.dialogText}>Contact: {doctor.contactPhone}</Text>
+            </>
+          ) : (
+            <Text>No doctor selected</Text>
+          )}
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={hideDialog}>Close</Button>
+        </Dialog.Actions>
+      </Dialog>
+
+      {/* Rating dialog with reviews */}
+      <Dialog visible={ratingDialogVisible} onDismiss={closeRatingDialog}>
+        <Dialog.Title>Doctor Reviews</Dialog.Title>
+        <Dialog.Content>
+          {doctor ? <ReviewList providerId={doctor.providerId} /> : <Text>No doctor selected.</Text>}
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={closeRatingDialog}>Close</Button>
+        </Dialog.Actions>
+      </Dialog>
+    </Portal>
+  );
 };
 
 const styles = StyleSheet.create({
-    dialog: {
-        backgroundColor: 'primary',
-    },
-    dialogContent: {
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    avatarContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    dialogAvatar: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        marginBottom: 10,
-    },
-    verificationIcon: {
-        position: 'absolute',
-        bottom: 0,
-        right: -20,
-    },
-    dialogName: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    closeButton: {
-        position: 'absolute',
-        right: 0,
-        top: 0,
-    },
-    iconRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-    },
-    iconContainer: {
-        width: 50,
-        height: 50,
-        backgroundColor: '#7cbedf',
-        borderRadius: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 10,
-    },
-    statsRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginTop: 15,
-    },
-    statsBox: {
-        width: 80,
-        alignItems: 'center',
-        paddingVertical: 10,
-        backgroundColor: '#7cbedf',
-        borderRadius: 8,
-        marginHorizontal: 5,
-    },
-    statsValue: {
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    statsLabel: {
-        fontSize: 12,
-        color: '#777',
-    },
+  dialogText: {
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 10,
+  },
+  centeredContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  doctorName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 15,
+  },
+  iconBackground: {
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+  },
+  infoBoxContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 15,
+  },
+  infoBox: {
+    width: 90,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 10,
+    padding: 5,
+  },
+  infoText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 5,
+  },
 });
 
 export default DoctorDetailsDialog;
