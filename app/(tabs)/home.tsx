@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
-import { Card, IconButton, Dialog, Portal } from 'react-native-paper';
+import { Card, IconButton } from 'react-native-paper';
+import { useRouter } from 'expo-router'; // Use useRouter instead of useNavigation
 
 const HomePage = () => {
   const [visible, setVisible] = useState(false);
+  const router = useRouter(); // Get the router object
 
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
@@ -33,7 +35,11 @@ const HomePage = () => {
           <TouchableOpacity
             key={item.title}
             style={styles.menuItem}
-            onPress={item.title === 'Doctors' ? showDialog : undefined}
+            onPress={
+              item.title === 'Doctors'
+                ? () => router.push('/doctor') // Use router.push to navigate
+                : undefined
+            }
           >
             <Card style={styles.cardContent}>
               <IconButton icon={item.icon} size={30} />
@@ -47,7 +53,6 @@ const HomePage = () => {
       </ScrollView>
 
       {/* Dialog */}
-    
     </View>
   );
 };
@@ -68,22 +73,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F2',
     padding: 10,
   },
-  dialog: {
-    height: 'auto',
-    maxHeight: 500,
-  },
-  dialogHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dialogTitle: {
-    flex: 1,
-  },
-  scrollContent: {
-    maxHeight: 400,
-    
-  },
   searchBar: {
     height: 50,
     borderRadius: 25,
@@ -91,10 +80,10 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     marginBottom: 15,
     fontSize: 16,
-    color: '#4ebaff'
+    color: '#4ebaff',
   },
   emergencyCard: {
-    backgroundColor: '#4ebaff', // Add the background color for the emergency card
+    backgroundColor: '#4ebaff',
     borderRadius: 10,
     padding: 10,
     marginBottom: 15,
@@ -102,12 +91,10 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4ebaff'
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    
   },
   description: {
     fontSize: 14,
@@ -120,12 +107,10 @@ const styles = StyleSheet.create({
   },
   menuItem: {
     width: '48%',
-    // Add the background color for the menu items
     borderRadius: 10,
     padding: 10,
     marginBottom: 15,
   },
 });
-
 
 export default HomePage;
