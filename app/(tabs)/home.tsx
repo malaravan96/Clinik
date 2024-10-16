@@ -1,27 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { Card, IconButton } from 'react-native-paper';
-import { useRouter } from 'expo-router'; // Use useRouter instead of useNavigation
+import { useRouter } from 'expo-router';
 
 const HomePage = () => {
   const [visible, setVisible] = useState(false);
-  const router = useRouter(); // Get the router object
+  const router = useRouter();
 
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
 
+  const screenHeight = Dimensions.get('window').height;
+  const headerHeight = screenHeight * 0.15;
+
   return (
     <View style={styles.container}>
-      {/* Search Bar */}
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Search Doctors, Clinics..."
-      />
-
-      {/* Emergency Section */}
+      {/* 15% height background with heading and search bar */}
+      <View style={[styles.header, { height: headerHeight }]}>
+        <Text style={styles.heading}>Home Page</Text>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search Doctors, Clinics..."
+        />
+      </View>
+      
+      {/* Emergency Card with icon and title aligned to the left */}
       <Card style={styles.emergencyCard}>
-        <View style={styles.cardContent}>
-          <IconButton icon="alert" size={30} />
+        <View style={styles.emergencyCardContent}>
+          <View style={styles.iconWrapperEmergency}>
+            <IconButton icon="alert" size={30} />
+          </View>
           <View>
             <Text style={styles.title}>Emergency</Text>
             <Text style={styles.description}>Short Description</Text>
@@ -29,43 +37,87 @@ const HomePage = () => {
         </View>
       </Card>
 
-      {/* Menu Options */}
-      <ScrollView contentContainerStyle={styles.menuGrid}>
-        {menuItems.map((item) => (
-          <TouchableOpacity
-            key={item.title}
-            style={styles.menuItem}
-            onPress={
-              item.title === 'Doctors'
-                ? () => router.push('/doctor') // Use router.push to navigate
-                : undefined
-            }
-          >
-            <Card style={styles.cardContent}>
-              <IconButton icon={item.icon} size={30} />
-              <View>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.description}>Short Description</Text>
+      <View style={styles.gap} />
+      {/* Cards displayed in 2 per row */}
+      <View style={styles.cardContainer}>
+        {/* Doctors Card */}
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => router.push('/doctor')}
+        >
+          <Card style={styles.menuCard}>
+            <View style={styles.cardContent}>
+              <View style={[styles.iconWrapper, { backgroundColor: '#e91e63' }]}>
+                <IconButton icon="doctor" size={30} />
               </View>
-            </Card>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text style={styles.title}>Doctors</Text>
+            </View>
+          </Card>
+        </TouchableOpacity>
 
-      {/* Dialog */}
+        {/* Clinics Card */}
+        <TouchableOpacity style={styles.menuItem}>
+          <Card style={styles.menuCard}>
+            <View style={styles.cardContent}>
+              <View style={[styles.iconWrapper, { backgroundColor: '#68bc00' }]}>
+                <IconButton icon="hospital-building" size={30} />
+              </View>
+              <Text style={styles.title}>Clinics</Text>
+            </View>
+          </Card>
+        </TouchableOpacity>
+
+        {/* Specialities Card */}
+        <TouchableOpacity style={styles.menuItem}>
+          <Card style={styles.menuCard}>
+            <View style={styles.cardContent}>
+              <View style={[styles.iconWrapper, { backgroundColor: '#ff9800' }]}>
+                <IconButton icon="medical-bag" size={30} />
+              </View>
+              <Text style={styles.title}>Specialities</Text>
+            </View>
+          </Card>
+        </TouchableOpacity>
+
+        {/* Labs Card */}
+        <TouchableOpacity style={styles.menuItem}>
+          <Card style={styles.menuCard}>
+            <View style={styles.cardContent}>
+              <View style={[styles.iconWrapper, { backgroundColor: '#9c27b0' }]}>
+                <IconButton icon="flask" size={30} />
+              </View>
+              <Text style={styles.title}>Labs</Text>
+            </View>
+          </Card>
+        </TouchableOpacity>
+
+        {/* Insurance Card */}
+        <TouchableOpacity style={styles.menuItem}>
+          <Card style={styles.menuCard}>
+            <View style={styles.cardContent}>
+              <View style={[styles.iconWrapper, { backgroundColor: '#f78da7' }]}>
+                <IconButton icon="shield-check" size={30} />
+              </View>
+              <Text style={styles.title}>Insurance</Text>
+            </View>
+          </Card>
+        </TouchableOpacity>
+
+        {/* Related Articles Card */}
+        <TouchableOpacity style={styles.menuItem}>
+          <Card style={styles.menuCard}>
+            <View style={styles.cardContent}>
+              <View style={[styles.iconWrapper, { backgroundColor: '#607d8b' }]}>
+                <IconButton icon="book-open-page-variant" size={30} />
+              </View>
+              <Text style={styles.title}>Articles</Text>
+            </View>
+          </Card>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
-
-// Menu items data
-const menuItems = [
-  { title: 'Doctors', icon: 'doctor' },
-  { title: 'Clinics', icon: 'hospital-building' },
-  { title: 'Specialities', icon: 'medical-bag' },
-  { title: 'Labs', icon: 'flask' },
-  { title: 'Insurance', icon: 'shield-check' },
-  { title: 'Related Articles', icon: 'book-open-page-variant' },
-];
 
 const styles = StyleSheet.create({
   container: {
@@ -73,43 +125,92 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F2',
     padding: 10,
   },
+  header: {
+    backgroundColor: '#4ebaff',
+    width: '100%',
+    justifyContent: 'center',
+    padding: 10,
+  },
+  heading: {
+    color: '#FFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
   searchBar: {
-    height: 50,
-    borderRadius: 25,
+    height: 40,
+    width: '100%',
+    borderRadius: 20,
     backgroundColor: '#FFF',
-    paddingLeft: 20,
-    marginBottom: 15,
+    paddingLeft: 15,
     fontSize: 16,
     color: '#4ebaff',
   },
-  emergencyCard: {
-    backgroundColor: '#4ebaff',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 15,
+  gap: {
+    height: 20,
   },
-  cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  description: {
-    fontSize: 14,
-    color: '#666',
-  },
-  menuGrid: {
+  cardContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   menuItem: {
     width: '48%',
-    borderRadius: 10,
-    padding: 10,
     marginBottom: 15,
+    
+  },
+  menuCard: {
+    borderRadius: 10,
+    backgroundColor: '#4ebaff',
+    height: 120,
+    justifyContent: 'flex-start',
+    padding: 10,
+  },
+  emergencyCard: {
+    backgroundColor: '#4ebaff',
+    borderRadius: 10,
+    height: 80,
+    justifyContent: 'flex-start', // Align content to the start
+    padding: 10,
+    marginTop: 20,
+  },
+  emergencyCardContent: {
+    flexDirection: 'row', // Align icon and text horizontally
+    alignItems: 'center', // Center items vertically
+  },
+  cardContent: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+  description: {
+    fontSize: 14,
+    color: '#666',
+  },
+  iconWrapper: {
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  iconWrapperEmergency: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#E0E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
 });
 
