@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   reviewItem: {
     marginBottom: 10,
     padding: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#4ebaff',
     borderRadius: 5,
   },
   reviewText: {

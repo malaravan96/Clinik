@@ -12,6 +12,8 @@ interface Doctor {
   averageRating: number;
   contactPhone: string;
   ratingCount: number;
+  bio: string;
+  workingHours: string;
 }
 
 interface DoctorDetailsDialogProps {
@@ -35,7 +37,16 @@ const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({
   return (
     <Portal>
       <Dialog visible={visible} onDismiss={hideDialog}>
-        <Dialog.Title>Doctor Details</Dialog.Title>
+        <View style={styles.dialogHeader}>
+          {/* Close IconButton on top-right */}
+          <IconButton
+            icon="close"
+            size={24}
+            onPress={hideDialog}
+            style={styles.closeButton}
+          />
+          <Dialog.Title>Doctor Details</Dialog.Title>
+        </View>
         <Dialog.Content>
           {doctor ? (
             <>
@@ -74,14 +85,24 @@ const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({
                 </View>
               </View>
 
-              <Text style={styles.dialogText}>Contact: {doctor.contactPhone}</Text>
+              {/* About Section */}
+              <Text style={styles.headingText}>About</Text>
+              <Text style={styles.dialogText}>{doctor.bio}</Text>
+
+              {/* Working Time Section */}
+              <Text style={styles.headingText}>Working Time</Text>
+              <Text style={styles.dialogText}>{doctor.workingHours}</Text>
             </>
           ) : (
             <Text>No doctor selected</Text>
           )}
         </Dialog.Content>
+        
+        {/* Dialog Actions */}
         <Dialog.Actions>
-          <Button onPress={hideDialog}>Close</Button>
+          <Button mode="contained" onPress={() => {}} style={styles.appointmentButton}>
+            Get Appointment
+          </Button>
         </Dialog.Actions>
       </Dialog>
 
@@ -100,6 +121,16 @@ const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({
 };
 
 const styles = StyleSheet.create({
+  dialogHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+  },
   dialogText: {
     marginBottom: 5,
     textAlign: 'center',
@@ -129,7 +160,7 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#4ebaff',
     borderRadius: 10,
   },
   infoBoxContainer: {
@@ -142,7 +173,7 @@ const styles = StyleSheet.create({
     height: 80,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#4ebaff',
     borderRadius: 10,
     padding: 5,
   },
@@ -150,6 +181,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginTop: 5,
+  },
+  headingText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  appointmentButton: {
+    width: '100%',
+    backgroundColor: '#4ebaff',
+    margin: 10,
   },
 });
 

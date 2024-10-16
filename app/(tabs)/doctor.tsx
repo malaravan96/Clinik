@@ -8,8 +8,10 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Card, IconButton, Provider } from 'react-native-paper';
+import { Card, Provider } from 'react-native-paper';
 import DoctorDetailsDialog from '../doctor/componets/page';
+
+import App from '@/assets/theme/app';
 
 // Define the type for a doctor
 interface Doctor {
@@ -22,6 +24,8 @@ interface Doctor {
   contactPhone: string;
   gender: string;
   isActive: boolean;
+  bio: string;
+  workingHours: string;
 }
 
 const DoctorList: React.FC = () => {
@@ -62,8 +66,7 @@ const DoctorList: React.FC = () => {
 
   const showDialog = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
-    // Set the image based on gender
-    setSelectedImage(doctor.gender === 'Male' ? MaleImg : FemaleImg);
+    setSelectedImage(doctor.gender === 'M' ? MaleImg : FemaleImg); // Set image based on gender value 'M' and 'F'
     setVisible(true);
   };
 
@@ -80,17 +83,20 @@ const DoctorList: React.FC = () => {
   }
 
   const renderDoctor = ({ item }: { item: Doctor }) => (
-    <Card style={styles.card}>
-      <Card.Content>
-        <Image source={item.gender === 'Male' ? MaleImg : FemaleImg} style={styles.avatar} />
-        <Text style={styles.name}>{item.name}</Text>
-        
-        {/* Doctor Information */}
-        <Text>Gender: {item.gender}</Text>
-        <Text>Qualification: {item.qualification}</Text>
-        <Text>Experience: {item.experienceYears} years</Text>
-        <Text>Contact: {item.contactPhone}</Text>
-        <IconButton icon="eye" size={16} onPress={() => showDialog(item)} /> {/* Show dialog */}
+    <Card style={styles.card} onPress={() => showDialog(item)}> {/* Card is now clickable */}
+      <Card.Content style={styles.cardContent}> {/* Use a row layout */}
+        {/* Square background for image */}
+        <View style={styles.avatarContainer}>
+          <Image source={item.gender === 'M' ? MaleImg : FemaleImg} style={styles.avatar} />
+        </View>
+        <View style={styles.doctorInfo}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text>Gender: {item.gender === 'M' ? 'Male' : 'Female'}</Text>
+          <Text>Qualification: {item.qualification}</Text>
+          <Text>Experience: {item.experienceYears} years</Text>
+          <Text>Contact: {item.contactPhone}</Text>
+        </View>
+       
       </Card.Content>
     </Card>
   );
@@ -98,6 +104,7 @@ const DoctorList: React.FC = () => {
   return (
     <Provider> {/* Wrap your component in Provider */}
       <View>
+       
         <FlatList
           data={doctors.slice(0, 5)} // Display only the first 5 doctors
           renderItem={renderDoctor}
@@ -125,15 +132,32 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     padding: 16,
   },
-  avatar: {
+  cardContent: {
+    flexDirection: 'row', // Align items in a row
+    alignItems: 'center', // Align vertically centered
+  },
+  avatarContainer: {
+    width: 75,
+    height: 75,
+   
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    marginRight: 10,
+},
+avatar: {
     width: 65,
     height: 65,
     borderRadius: 22.5,
     marginBottom: 5,
+},
+  doctorInfo: {
+    flex: 1, // Take up remaining space
   },
   name: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 4,
   },
 });
 
