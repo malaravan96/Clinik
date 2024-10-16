@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { Card, IconButton } from 'react-native-paper';
-import { useRouter } from 'expo-router'; // Use useRouter instead of useNavigation
+import { useRouter } from 'expo-router';
 
 const HomePage = () => {
   const [visible, setVisible] = useState(false);
-  const router = useRouter(); // Get the router object
+  const router = useRouter();
 
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
 
-  // Get the screen height to calculate 15% of it
   const screenHeight = Dimensions.get('window').height;
-  const headerHeight = screenHeight * 0.15; // 15% of screen height
+  const headerHeight = screenHeight * 0.15;
 
   return (
     <View style={styles.container}>
@@ -25,9 +24,10 @@ const HomePage = () => {
         />
       </View>
       
+      {/* Emergency Card with icon and title aligned to the left */}
       <Card style={styles.emergencyCard}>
-        <View style={styles.cardContent}>
-          <View style={styles.iconWrapper}>
+        <View style={styles.emergencyCardContent}>
+          <View style={styles.iconWrapperEmergency}>
             <IconButton icon="alert" size={30} />
           </View>
           <View>
@@ -36,17 +36,20 @@ const HomePage = () => {
           </View>
         </View>
       </Card>
+
       <View style={styles.gap} />
       {/* Cards displayed in 2 per row */}
       <View style={styles.cardContainer}>
         {/* Doctors Card */}
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => router.push('/doctor')} // Navigate to doctors
+          onPress={() => router.push('/doctor')}
         >
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
-              <IconButton icon="doctor" size={30} />
+              <View style={[styles.iconWrapper, { backgroundColor: '#e91e63' }]}>
+                <IconButton icon="doctor" size={30} />
+              </View>
               <Text style={styles.title}>Doctors</Text>
             </View>
           </Card>
@@ -56,7 +59,9 @@ const HomePage = () => {
         <TouchableOpacity style={styles.menuItem}>
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
-              <IconButton icon="hospital-building" size={30} />
+              <View style={[styles.iconWrapper, { backgroundColor: '#68bc00' }]}>
+                <IconButton icon="hospital-building" size={30} />
+              </View>
               <Text style={styles.title}>Clinics</Text>
             </View>
           </Card>
@@ -66,7 +71,9 @@ const HomePage = () => {
         <TouchableOpacity style={styles.menuItem}>
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
-              <IconButton icon="medical-bag" size={30} />
+              <View style={[styles.iconWrapper, { backgroundColor: '#ff9800' }]}>
+                <IconButton icon="medical-bag" size={30} />
+              </View>
               <Text style={styles.title}>Specialities</Text>
             </View>
           </Card>
@@ -76,7 +83,9 @@ const HomePage = () => {
         <TouchableOpacity style={styles.menuItem}>
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
-              <IconButton icon="flask" size={30} />
+              <View style={[styles.iconWrapper, { backgroundColor: '#9c27b0' }]}>
+                <IconButton icon="flask" size={30} />
+              </View>
               <Text style={styles.title}>Labs</Text>
             </View>
           </Card>
@@ -86,7 +95,9 @@ const HomePage = () => {
         <TouchableOpacity style={styles.menuItem}>
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
-              <IconButton icon="shield-check" size={30} />
+              <View style={[styles.iconWrapper, { backgroundColor: '#f78da7' }]}>
+                <IconButton icon="shield-check" size={30} />
+              </View>
               <Text style={styles.title}>Insurance</Text>
             </View>
           </Card>
@@ -96,15 +107,14 @@ const HomePage = () => {
         <TouchableOpacity style={styles.menuItem}>
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
-              <IconButton icon="book-open-page-variant" size={30} />
-              <Text style={styles.title}>Related Articles</Text>
+              <View style={[styles.iconWrapper, { backgroundColor: '#607d8b' }]}>
+                <IconButton icon="book-open-page-variant" size={30} />
+              </View>
+              <Text style={styles.title}>Articles</Text>
             </View>
           </Card>
         </TouchableOpacity>
       </View>
-
-      {/* Emergency Card at the end */}
-      
     </View>
   );
 };
@@ -116,7 +126,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   header: {
-    backgroundColor: '#4ebaff', // Color for the 15% background
+    backgroundColor: '#4ebaff',
     width: '100%',
     justifyContent: 'center',
     padding: 10,
@@ -125,11 +135,11 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10, // Gap between heading and search bar
+    marginBottom: 10,
   },
   searchBar: {
     height: 40,
-    width: '100%', // Full width search bar
+    width: '100%',
     borderRadius: 20,
     backgroundColor: '#FFF',
     paddingLeft: 15,
@@ -137,39 +147,45 @@ const styles = StyleSheet.create({
     color: '#4ebaff',
   },
   gap: {
-    height: 20, // Gap between header and cards
+    height: 20,
   },
   cardContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap', // Allow cards to wrap into rows
-    justifyContent: 'space-between', // Spread out cards evenly
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   menuItem: {
-    width: '48%', // Take up 48% of the width to fit 2 cards in a row
+    width: '48%',
     marginBottom: 15,
+    
   },
   menuCard: {
     borderRadius: 10,
-    backgroundColor: '#FFF',
-    height: 120, // Square-shaped card
-    justifyContent: 'center', // Center content vertically
-    alignItems: 'center', // Center content horizontally
+    backgroundColor: '#4ebaff',
+    height: 120,
+    justifyContent: 'flex-start',
+    padding: 10,
   },
   emergencyCard: {
-    backgroundColor: '#4ebaff', // Background color for emergency card
+    backgroundColor: '#4ebaff',
     borderRadius: 10,
-    height: 80, // Same height for consistency
-    justifyContent: 'center', // Center content vertically
-    alignItems: 'center', // Center content horizontally
-    marginTop: 20, // Add margin on top for spacing
+    height: 80,
+    justifyContent: 'flex-start', // Align content to the start
+    padding: 10,
+    marginTop: 20,
+  },
+  emergencyCardContent: {
+    flexDirection: 'row', // Align icon and text horizontally
+    alignItems: 'center', // Center items vertically
   },
   cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   title: {
     fontSize: 16,
     fontWeight: 'bold',
+    marginTop: 10,
   },
   description: {
     fontSize: 14,
@@ -178,10 +194,23 @@ const styles = StyleSheet.create({
   iconWrapper: {
     width: 50,
     height: 50,
-    backgroundColor: '#E0E0E0', // Light grey square background
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10, // Rounded corners for the square
+    borderRadius: 10,
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  iconWrapperEmergency: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#E0E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
 });
 
