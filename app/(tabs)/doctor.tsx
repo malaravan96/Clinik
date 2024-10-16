@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { Card, Provider } from 'react-native-paper';
 import DoctorDetailsDialog from '../doctor/componets/page';
-
-import App from '@/assets/theme/app';
+import { theme } from '@/assets/theme';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 // Define the type for a doctor
 interface Doctor {
@@ -81,7 +81,20 @@ const DoctorList: React.FC = () => {
     Alert.alert('Error', error);
     return null; // Return null or a placeholder if there's an error
   }
-
+  const renderStars = (rating: number) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+        stars.push(
+            <Icon
+                key={i}
+                name={i <= rating ? 'star' : 'star-o'}
+                size={18}
+                color="#FFD700" // Gold color for stars
+            />
+        );
+    }
+    return <View style={styles.starsContainer}>{stars}</View>;
+};
   const renderDoctor = ({ item }: { item: Doctor }) => (
     <Card style={styles.card} onPress={() => showDialog(item)}> {/* Card is now clickable */}
       <Card.Content style={styles.cardContent}> {/* Use a row layout */}
@@ -91,10 +104,12 @@ const DoctorList: React.FC = () => {
         </View>
         <View style={styles.doctorInfo}>
           <Text style={styles.name}>{item.name}</Text>
-          <Text>Gender: {item.gender === 'M' ? 'Male' : 'Female'}</Text>
+        
+          <Text>{item.experienceYears} Years Experience</Text>
           <Text>Qualification: {item.qualification}</Text>
-          <Text>Experience: {item.experienceYears} years</Text>
+          <Text>Gender: {item.gender === 'M' ? 'Male' : 'Female'}</Text>
           <Text>Contact: {item.contactPhone}</Text>
+          <Text>{renderStars(Math.round(item.averageRating))} ({item.ratingCount} reviews)</Text>
         </View>
        
       </Card.Content>
@@ -136,10 +151,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row', // Align items in a row
     alignItems: 'center', // Align vertically centered
   },
+  starsContainer: {
+    flexDirection: 'row',
+    marginLeft: 5,
+},
   avatarContainer: {
     width: 75,
     height: 75,
-   
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
