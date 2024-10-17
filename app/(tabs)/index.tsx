@@ -13,10 +13,10 @@ export default function LoginScreen() {
     router.push('/home'); // Replace '/home' with the path to your target page
   };
 
-  const handleSignUp = () => {
-    // Navigate to SignUp page
-    router.push('/signup'); // Replace '/signup' with your signup route
-  };
+  // const handleSignUp = () => {
+  //   // Navigate to SignUp page
+  //   router.push('/signup'); // Replace '/signup' with your signup route
+  // };
 
   return (
     <View style={styles.container}>
@@ -30,7 +30,7 @@ export default function LoginScreen() {
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
+        <TouchableOpacity style={styles.signUpButton} >
           <Text style={styles.signUpButtonText}>Sign Up</Text>
         </TouchableOpacity>
 
