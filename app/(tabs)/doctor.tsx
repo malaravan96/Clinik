@@ -81,58 +81,58 @@ const DoctorList: React.FC = () => {
     Alert.alert('Error', error);
     return null; // Return null or a placeholder if there's an error
   }
+
   const renderStars = (rating: number) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
-        stars.push(
-            <Icon
-                key={i}
-                name={i <= rating ? 'star' : 'star-o'}
-                size={18}
-                color="#FFD700" // Gold color for stars
-            />
-        );
+      stars.push(
+        <Icon
+          key={i}
+          name={i <= rating ? 'star' : 'star-o'}
+          size={18}
+          color="#FFD700" // Gold color for stars
+        />
+      );
     }
     return <View style={styles.starsContainer}>{stars}</View>;
-};
+  };
+
   const renderDoctor = ({ item }: { item: Doctor }) => (
-    <Card style={styles.card} onPress={() => showDialog(item)}> {/* Card is now clickable */}
-      <Card.Content style={styles.cardContent}> {/* Use a row layout */}
-        {/* Square background for image */}
+    <Card style={styles.card} onPress={() => showDialog(item)}>
+      <Card.Content style={styles.cardContent}>
         <View style={styles.avatarContainer}>
           <Image source={item.gender === 'M' ? MaleImg : FemaleImg} style={styles.avatar} />
         </View>
         <View style={styles.doctorInfo}>
           <Text style={styles.name}>{item.name}</Text>
-        
           <Text>{item.experienceYears} Years Experience</Text>
           <Text>Qualification: {item.qualification}</Text>
           <Text>Gender: {item.gender === 'M' ? 'Male' : 'Female'}</Text>
           <Text>Contact: {item.contactPhone}</Text>
-          <Text>{renderStars(Math.round(item.averageRating))} ({item.ratingCount} reviews)</Text>
+          {/* Render stars and rating count in a View, outside of Text */}
+          <View style={styles.ratingContainer}>
+            {renderStars(Math.round(item.averageRating))}
+            <Text> ({item.ratingCount} reviews)</Text>
+          </View>
         </View>
-       
       </Card.Content>
     </Card>
   );
 
   return (
-    <Provider> {/* Wrap your component in Provider */}
+    <Provider>
       <View>
-       
         <FlatList
           data={doctors.slice(0, 5)} // Display only the first 5 doctors
           renderItem={renderDoctor}
           keyExtractor={(item) => item.providerId}
           contentContainerStyle={styles.container}
         />
-
-        {/* Pass selected doctor data and image source to the dialog */}
         <DoctorDetailsDialog
           visible={visible}
           hideDialog={hideDialog}
-          doctor={selectedDoctor} // Pass the selected doctor
-          imageSource={selectedImage} // Pass the selected image
+          doctor={selectedDoctor}
+          imageSource={selectedImage}
         />
       </View>
     </Provider>
@@ -148,13 +148,17 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardContent: {
-    flexDirection: 'row', // Align items in a row
-    alignItems: 'center', // Align vertically centered
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   starsContainer: {
     flexDirection: 'row',
     marginLeft: 5,
-},
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   avatarContainer: {
     width: 75,
     height: 75,
@@ -163,15 +167,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     marginRight: 10,
-},
-avatar: {
+  },
+  avatar: {
     width: 65,
     height: 65,
     borderRadius: 22.5,
     marginBottom: 5,
-},
+  },
   doctorInfo: {
-    flex: 1, // Take up remaining space
+    flex: 1,
   },
   name: {
     fontSize: 18,
