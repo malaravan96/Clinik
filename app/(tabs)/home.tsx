@@ -165,6 +165,13 @@ const styles = StyleSheet.create({
     height: 80,
     justifyContent: 'flex-start',
     padding: 10,
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    // Elevation for Android
+    elevation: 5,
   },
   emergencyCard: {
     backgroundColor: '#4ebaff',
