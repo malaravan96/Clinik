@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
-import { CustomDayProps, Dot } from './types'; // Adjust the path if necessary
+import { CustomDayProps, Dot } from '../(tabs)/types'; // Adjust the path if necessary
 
 const CustomDay: React.FC<CustomDayProps> = ({ date, state, marking, onPress }) => {
   const isSelected = marking?.selected;
