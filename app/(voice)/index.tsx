@@ -1,216 +1,220 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Audio } from 'expo-av';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  PermissionsAndroid,
+  ScrollView,
+} from 'react-native';
+import axios from 'axios';
+import AudioRecorderPlayer, {
+  AudioSet,
+  AudioEncoderAndroidType,
+  AudioSourceAndroidType,
+  AVEncoderAudioQualityIOSType,
+  OutputFormatAndroidType,
+} from 'react-native-audio-recorder-player';
 
-export default function App() {
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [transcription, setTranscription] = useState<string>('');
+const BASE_API_URL = 'https://pyskedev.azurewebsites.net/api'; // Replace with your actual base API URL
+
+const getAssemblyAIToken = async () => {
+  try {
+    const API_ENDPOINT = `${BASE_API_URL}/voice`;
+    const response = await axios.get(`${API_ENDPOINT}/GetUserToken?userId=test`);
+    return response.data['Token'];
+  } catch (error) {
+    console.error('Error fetching AssemblyAI token:', error);
+    return null;
+  }
+};
+
+function VoiceTranscriber() {
+  const [token, setToken] = useState<string | null>(null);
+  const socket = useRef<WebSocket | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [transcript, setTranscript] = useState<string>('');
+  const audioRecorderPlayer = useRef(new AudioRecorderPlayer()).current;
 
-  const userId = 'aaa'; // Replace with actual userId
-  const azureRegion = 'eastus'; // Replace with your Azure region
-  const language = 'en-US'; // Set the desired language
-
-  // Function to get token
-  async function getToken(userId: string): Promise<string | null> {
-    try {
-      const response = await fetch(
-        `https://careappsstg.azurewebsites.net/api/voice/GetUserToken?userId=${userId}`
-      );
-      const json = await response.json();
-      return json.Token;
-    } catch (error) {
-      console.error('Error fetching token:', error);
-      return null;
-    }
-  }
-
-  // Function to start recording
-async function startRecording() {
-    try {
-      console.log('Requesting permissions...');
-      const permission = await Audio.requestPermissionsAsync();
-      if (permission.status === 'granted') {
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: true,
-          playsInSilentModeIOS: true,
-        });
-        const newRecording = new Audio.Recording();
-  
-        // Option 1: Use the corrected preset reference
-        await newRecording.prepareToRecordAsync(
-          Audio.RecordingOptionsPresets.HIGH_QUALITY
-        );
-  
-        // Option 2: Use custom recording options
-        /*
-        const recordingOptions: Audio.RecordingOptions = {
-          android: {
-            extension: '.wav',
-            outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_PCM_16BIT,
-            audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_PCM_16BIT,
-            sampleRate: 16000,
-            numberOfChannels: 1,
-            bitRate: 128000,
-          },
-          ios: {
-            extension: '.wav',
-            audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
-            sampleRate: 16000,
-            numberOfChannels: 1,
-            bitRate: 128000,
-            linearPCMBitDepth: 16,
-            linearPCMIsBigEndian: false,
-            linearPCMIsFloat: false,
-          },
-        };
-  
-        await newRecording.prepareToRecordAsync(recordingOptions);
-        */
-  
-        await newRecording.startAsync();
-        setRecording(newRecording);
-        setIsRecording(true);
-        console.log('Recording started');
-      } else {
-        console.log('Permission to access microphone denied');
+  useEffect(() => {
+    const fetchToken = async () => {
+      const assemblyToken = await getAssemblyAIToken();
+      if (assemblyToken) {
+        setToken(assemblyToken);
       }
-    } catch (err) {
-      console.error('Failed to start recording:', err);
-    }
-  }
-  
+    };
+    fetchToken();
+  }, []);
 
-  // Function to stop recording
-  async function stopRecording() {
-    try {
-      console.log('Stopping recording...');
-      setIsRecording(false);
-      if (recording) {
-        await recording.stopAndUnloadAsync();
-        const uri = recording.getURI();
-        setRecording(null);
-        console.log('Recording stopped and stored at', uri);
-
-        if (uri) {
-          // Get the audio blob
-          const audioBlob = await getAudioBlob(uri);
-
-          // Get the token
-          const token = await getToken(userId);
-
-          if (token) {
-            // Send audio to speech service
-            const result = await sendAudioToSpeechService(audioBlob, token);
-
-            // Update transcription state
-            if (result && result.DisplayText) {
-              setTranscription(result.DisplayText);
-            } else {
-              setTranscription('Transcription failed or no speech detected.');
-            }
-          } else {
-            console.error('Failed to obtain token');
-          }
-        } else {
-          console.error('Recording URI is null');
+  const onStartRecord = async () => {
+    if (Platform.OS === 'android') {
+      // Request permissions on Android
+      try {
+        const granted = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        ]);
+        if (
+          granted['android.permission.RECORD_AUDIO'] !== PermissionsAndroid.RESULTS.GRANTED ||
+          granted['android.permission.WRITE_EXTERNAL_STORAGE'] !== PermissionsAndroid.RESULTS.GRANTED
+        ) {
+          console.log('Permissions not granted');
+          return;
         }
-      } else {
-        console.error('Recording is null');
+      } catch (err) {
+        console.warn(err);
+        return;
       }
-    } catch (error) {
-      console.error('Failed to stop recording:', error);
     }
-  }
 
-  // Function to get audio data as a blob
-  async function getAudioBlob(uri: string): Promise<Blob> {
-    const response = await fetch(uri);
-    const blob = await response.blob();
-    return blob;
-  }
+    if (!token) {
+      console.error('No token found');
+      return;
+    }
 
-  // Function to send audio to Azure Speech Service
-  async function sendAudioToSpeechService(
-    audioBlob: Blob,
-    token: string
-  ): Promise<any> {
-    const endpoint = `https://${azureRegion}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=${language}`;
+    // Create a new WebSocket connection for real-time transcription
+    socket.current = new WebSocket(
+      `wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token=${token}`
+    );
 
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
-          'Ocp-Apim-Subscription-Key': token,
-          'Accept': 'application/json',
-        },
-        body: audioBlob,
+    const texts: { [key: number]: string } = {};
+
+    socket.current.onmessage = (voicePrompt: WebSocketMessageEvent) => {
+      let msg = '';
+      const res = JSON.parse(voicePrompt.data);
+      texts[res.audio_start] = res.text;
+      const keys = Object.keys(texts).map(Number);
+      keys.sort((a, b) => a - b);
+      for (const key of keys) {
+        if (texts[key]) {
+          msg += ` ${texts[key]}`;
+        }
+      }
+      setTranscript(msg);
+    };
+
+    socket.current.onerror = (event: Event) => {
+      console.error('WebSocket error occurred:', event);
+      if (socket.current) {
+        socket.current.close();
+        socket.current = null;
+      }
+    };
+
+    socket.current.onclose = (event: WebSocketCloseEvent) => {
+      console.log('WebSocket closed:', event);
+      socket.current = null;
+    };
+
+    socket.current.onopen = async () => {
+      console.log('WebSocket opened');
+      setIsRecording(true);
+
+      const audioSet: AudioSet = {
+        AudioSourceAndroid: AudioSourceAndroidType.MIC,
+        AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
+        AudioSamplingRateAndroid: 16000,
+        AudioEncodingBitRateAndroid: 128000,
+        OutputFormatAndroid: OutputFormatAndroidType.AAC_ADTS,
+        AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
+      };
+
+      // Start recording
+      await audioRecorderPlayer.startRecorder(
+        undefined,
+        audioSet,
+        // { includeBase64: true } // RecorderOptions
+      );
+
+      audioRecorderPlayer.addRecordBackListener((e: any) => {
+        // e.currentPosition holds the current position
+        // e.base64 holds the base64 encoded audio data chunk
+
+        if (socket.current && e && e.currentPosition > 0 && e.base64) {
+          socket.current.send(JSON.stringify({ audio_data: e.base64 }));
+        }
       });
+    };
+  };
 
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error('Error sending audio data:', error);
+  const onStopRecord = async () => {
+    setIsRecording(false);
+
+    if (socket.current) {
+      socket.current.send(JSON.stringify({ terminate_session: true }));
+      socket.current.close();
+      socket.current = null;
     }
-  }
+
+    await audioRecorderPlayer.stopRecorder();
+    audioRecorderPlayer.removeRecordBackListener();
+  };
+
+  const clearTranscript = () => {
+    setTranscript('');
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Real-Time Voice Transcription</Text>
+      <Text style={styles.title}>Real-Time Medical Transcription</Text>
+      <Text style={styles.subtitle}>Try Clinik's new real-time transcription endpoint!</Text>
+
       <TouchableOpacity
-        style={isRecording ? styles.buttonStop : styles.buttonRecord}
-        onPress={isRecording ? stopRecording : startRecording}
+        style={styles.button}
+        onPress={isRecording ? onStopRecord : onStartRecord}
       >
-        <Text style={styles.buttonText}>
-          {isRecording ? 'Stop Recording' : 'Start Recording'}
-        </Text>
+        <Text style={styles.buttonText}>{isRecording ? 'Stop Recording' : 'Start Recording'}</Text>
       </TouchableOpacity>
-      <View style={styles.transcriptionContainer}>
-        <Text style={styles.transcriptionTitle}>Transcription:</Text>
-        <Text style={styles.transcriptionText}>{transcription}</Text>
-      </View>
+
+      <TouchableOpacity style={styles.button} onPress={clearTranscript}>
+        <Text style={styles.buttonText}>Clear Transcript</Text>
+      </TouchableOpacity>
+
+      <ScrollView style={styles.transcriptContainer}>
+        <Text style={styles.transcriptText}>{transcript || 'Your transcript will appear here.'}</Text>
+      </ScrollView>
     </View>
   );
 }
 
+export default VoiceTranscriber;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    alignItems: 'center',
+    padding: 16,
     backgroundColor: '#fff',
-    justifyContent: 'center',
   },
   title: {
     fontSize: 24,
+    fontWeight: 'bold',
+    marginVertical: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 24,
     textAlign: 'center',
-    marginBottom: 40,
   },
-  buttonRecord: {
+  button: {
     backgroundColor: '#1e90ff',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  buttonStop: {
-    backgroundColor: '#ff4c4c',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginVertical: 8,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
   },
-  transcriptionContainer: {
-    marginTop: 40,
+  transcriptContainer: {
+    flex: 1,
+    width: '100%',
+    marginTop: 16,
   },
-  transcriptionTitle: {
-    fontSize: 20,
-    marginBottom: 10,
-  },
-  transcriptionText: {
+  transcriptText: {
     fontSize: 16,
     color: '#333',
   },
