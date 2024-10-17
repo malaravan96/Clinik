@@ -17,7 +17,7 @@ import AudioRecorderPlayer, {
   OutputFormatAndroidType,
 } from 'react-native-audio-recorder-player';
 
-const BASE_API_URL = 'https://pyskedev.azurewebsites.net/api'; // Replace with your actual base API URL
+const BASE_API_URL = 'https://careappsstg.azurewebsites.net/api'; // Replace with your actual base API URL
 
 const getAssemblyAIToken = async () => {
   try {
