@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput } from 'react-native';
-import { IconButton } from 'react-native-paper'; 
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, Alert } from 'react-native';
+import { IconButton } from 'react-native-paper';
 
 interface Review {
   reviewId: string;
@@ -18,6 +18,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ providerId }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [inputValue, setInputValue] = useState<string>(''); // State for the input field
+  const [selectedRating, setSelectedRating] = useState<number>(0); // State for the selected rating
 
   // Fetch reviews from the API and filter by providerId
   useEffect(() => {
@@ -25,7 +26,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ providerId }) => {
       try {
         const response = await fetch('https://pyskedev.azurewebsites.net/api/Reviews/GetAllReviews');
         const data = await response.json();
-        
+
         // Filter reviews for the specific providerId
         const filteredReviews = data.filter((review: Review) => review.providerId === providerId);
         setReviews(filteredReviews);
@@ -42,17 +43,16 @@ const ReviewList: React.FC<ReviewListProps> = ({ providerId }) => {
   // Function to handle review submission
   const handleSubmit = async () => {
     if (!inputValue.trim()) {
-      alert("Review text cannot be empty.");
+      alert('Review text cannot be empty.');
       return;
     }
 
     const newReview = {
-      reviewId: "",
+      reviewId: '',
       providerId,
-      patientId: "",
+      patientId: '',
       reviewText: inputValue,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
 
     try {
@@ -65,7 +65,6 @@ const ReviewList: React.FC<ReviewListProps> = ({ providerId }) => {
       });
 
       if (response.ok) {
-        // Optionally, you can fetch the updated reviews again here or add the new review to the state
         setInputValue(''); // Clear the input field after submission
       } else {
         const errorData = await response.json();
@@ -73,6 +72,34 @@ const ReviewList: React.FC<ReviewListProps> = ({ providerId }) => {
       }
     } catch (error) {
       console.error('Error submitting review:', error);
+    }
+  };
+
+  // Function to handle rating submission
+  const handleRatingSubmit = async (rating: number) => {
+    const newRating = {
+      ratingId: '',
+      providerId,
+      patientId: '', // Add your logic to populate patientId
+      rating,
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch('https://pyskedev.azurewebsites.net/api/Ratings/CreateRating', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newRating),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Failed to submit rating: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error);
     }
   };
 
@@ -84,21 +111,31 @@ const ReviewList: React.FC<ReviewListProps> = ({ providerId }) => {
     <View style={styles.container}>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.inputField} 
+          style={styles.inputField}
           placeholder="Type your comment here..."
           value={inputValue}
           onChangeText={setInputValue}
-          multiline={true} 
-          numberOfLines={3} 
-          textAlignVertical="top" 
+          multiline={true}
+          numberOfLines={3}
+          textAlignVertical="top"
         />
-        <IconButton 
-          icon="send" // You can change this to any icon you prefer
-          onPress={handleSubmit}
-          style={styles.submitButton}
-          
-        />
+        <IconButton icon="send" onPress={handleSubmit} style={styles.submitButton} />
       </View>
+
+      <View style={styles.ratingContainer}>
+        {Array.from({ length: 5 }, (_, index) => (
+          <IconButton
+            key={index}
+            icon={selectedRating > index ? 'star' : 'star-outline'}
+            size={24}
+            onPress={() => {
+              setSelectedRating(index + 1);
+              handleRatingSubmit(index + 1);
+            }}
+          />
+        ))}
+      </View>
+
       {reviews.length > 0 ? (
         <FlatList
           data={reviews}
@@ -132,11 +169,16 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderColor: '#ccc',
     borderWidth: 1,
-    height: 90, // Set a height to accommodate 3 lines
-    flex: 1, // Allow the TextInput to take the available space
+    height: 90,
+    flex: 1,
   },
   submitButton: {
-    marginLeft: 10, // Space between input and button
+    marginLeft: 10,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
   reviewItem: {
     marginBottom: 10,
