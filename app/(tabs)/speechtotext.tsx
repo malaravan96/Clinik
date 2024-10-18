@@ -40,9 +40,19 @@ const VoiceTranscriber = () => {
       console.error('No token found')
       return
     }
-
+  
+    // If there's an ongoing recording, stop it before starting a new one
+    if (recorder.current) {
+      try {
+        await recorder.current.stopAndUnloadAsync()
+        recorder.current = null // Ensure the current recording object is cleared
+      } catch (error) {
+        console.error('Failed to stop previous recording:', error)
+      }
+    }
+  
     socket.current = new WebSocket(`wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token=${token}`)
-
+  
     const texts: Record<number, string> = {}
     socket.current.onmessage = (voicePrompt: MessageEvent) => {
       let msg = ''
@@ -56,24 +66,24 @@ const VoiceTranscriber = () => {
       }
       setTranscript(msg)
     }
-
+  
     socket.current.onerror = (event) => {
       console.error(event)
       socket.current?.close()
     }
-
+  
     socket.current.onclose = (event) => {
       console.log(event)
       socket.current = null
     }
-
+  
     socket.current.onopen = async () => {
       const { granted } = await Audio.requestPermissionsAsync()
       if (!granted) {
         console.error('Audio permission not granted')
         return
       }
-
+  
       const recording = new Audio.Recording()
       try {
         await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY)
@@ -85,13 +95,13 @@ const VoiceTranscriber = () => {
         await recording.startAsync()
         setRecordingInstance(recording)
       } catch (error) {
-        console.error('Failed to start recording', error)
+        console.error('Failed to start recording:', error)
       }
     }
-
+  
     setIsRecording(true)
   }
-
+  
   const endTranscription = async () => {
     setIsRecording(false)
 
