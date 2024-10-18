@@ -40,7 +40,7 @@ const VoiceTranscriber = () => {
       console.error('No token found')
       return
     }
-  
+
     // If there's an ongoing recording, stop it before starting a new one
     if (recorder.current) {
       try {
@@ -50,65 +50,88 @@ const VoiceTranscriber = () => {
         console.error('Failed to stop previous recording:', error)
       }
     }
-  
+
     socket.current = new WebSocket(`wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token=${token}`)
-  
+
     const texts: Record<number, string> = {}
-    socket.current.onmessage = (voicePrompt: MessageEvent) => {
-      let msg = ''
-      const res = JSON.parse(voicePrompt.data)
-      texts[res.audio_start] = res.text
-      const keys = Object.keys(texts).map(Number).sort((a, b) => a - b)
-      for (const key of keys) {
-        if (texts[key]) {
-          msg += ` ${texts[key]}`
+    if (socket.current) {
+      socket.current.onmessage = (voicePrompt: MessageEvent) => {
+        const res = JSON.parse(voicePrompt.data)
+        const audioStart: number = Number(res.audio_start) // Explicitly cast audio_start to number
+        texts[audioStart] = res.text
+        
+        // Sort the transcripts based on their start time and join them
+        const sortedTranscript = Object.keys(texts)
+          .sort((a, b) => Number(a) - Number(b))
+          .map((key) => texts[Number(key)]) // Convert key back to number when accessing the texts object
+          .join(' ')
+
+        setTranscript(sortedTranscript) // Update the transcript in state
+      }
+
+      socket.current.onerror = (event) => {
+        console.error("WebSocket error:", event)
+        socket.current?.close()
+      }
+
+      socket.current.onclose = (event) => {
+        console.log("WebSocket closed", event.code, event.reason)
+        if (event.code !== 1000) {
+          console.error("WebSocket closed unexpectedly. Attempting to reconnect...")
+          setTimeout(generateTranscript, 1000) // Attempt to reconnect after 1 second
+        }
+        socket.current = null
+      }
+
+      socket.current.onopen = async () => {
+        console.log("WebSocket connection opened")
+
+        // Send ping to keep the connection alive every 30 seconds
+        const pingInterval = setInterval(() => {
+          if (socket.current) {
+            socket.current.send(JSON.stringify({ ping: true }))
+          }
+        }, 30000)
+
+        // Clear ping interval when the WebSocket closes
+        if (socket.current) {
+          socket.current.onclose = () => {
+            clearInterval(pingInterval)
+            socket.current = null
+          }
+        }
+
+        const { granted } = await Audio.requestPermissionsAsync()
+        if (!granted) {
+          console.error('Audio permission not granted')
+          return
+        }
+
+        const recording = new Audio.Recording()
+        try {
+          await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY)
+          recording.setOnRecordingStatusUpdate((status) => {
+            if (status.isRecording) {
+              recorder.current = recording
+            }
+          })
+          await recording.startAsync()
+          setRecordingInstance(recording)
+        } catch (error) {
+          console.error('Failed to start recording:', error)
         }
       }
-      setTranscript(msg)
+
+      setIsRecording(true)
     }
-  
-    socket.current.onerror = (event) => {
-      console.error(event)
-      socket.current?.close()
-    }
-  
-    socket.current.onclose = (event) => {
-      console.log(event)
-      socket.current = null
-    }
-  
-    socket.current.onopen = async () => {
-      const { granted } = await Audio.requestPermissionsAsync()
-      if (!granted) {
-        console.error('Audio permission not granted')
-        return
-      }
-  
-      const recording = new Audio.Recording()
-      try {
-        await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY)
-        recording.setOnRecordingStatusUpdate((status) => {
-          if (status.isRecording) {
-            recorder.current = recording
-          }
-        })
-        await recording.startAsync()
-        setRecordingInstance(recording)
-      } catch (error) {
-        console.error('Failed to start recording:', error)
-      }
-    }
-  
-    setIsRecording(true)
   }
-  
+
   const endTranscription = async () => {
     setIsRecording(false)
 
     if (socket.current) {
       socket.current.send(JSON.stringify({ terminate_session: true }))
       socket.current.close()
-      socket.current = null
     }
 
     if (recorder.current) {
@@ -126,11 +149,9 @@ const VoiceTranscriber = () => {
 
         const reader = new FileReader()
         reader.onload = () => {
-          if (reader.result) {
+          if (reader.result && socket.current) {
             const base64data = (reader.result as string).split('base64,')[1]
-            if (socket.current) {
-              socket.current.send(JSON.stringify({ audio_data: base64data }))
-            }
+            socket.current?.send(JSON.stringify({ audio_data: base64data }))
           }
         }
         reader.readAsDataURL(audioBlob)
@@ -153,7 +174,7 @@ const VoiceTranscriber = () => {
       ) : (
         <Button title="Start Recording" onPress={generateTranscript} />
       )}
-      <Text style={{ marginTop: 20 }}>{transcript}</Text>
+      <Text style={{ marginTop: 20, fontSize: 16 }}>{transcript}</Text>
     </View>
   )
 }
