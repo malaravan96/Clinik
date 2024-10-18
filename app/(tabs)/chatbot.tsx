@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Alert, Text, ScrollView, StyleSheet, Image } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import axios from 'axios';
+import * as Speech from 'expo-speech';  // Import expo-speech
 
 // Define the Message type
 type Message = {
@@ -46,7 +47,14 @@ const DiagnosticRequestPage = () => {
         isRequest: false,
       };
 
+      // Add the response message to the state
       setMessages((prevMessages: Message[]) => [...prevMessages, responseMessage]);
+
+      // Use expo-speech to read the response aloud
+      Speech.speak(responseMessage.body, {
+        language: 'en', // You can change this to other languages if needed
+      });
+
     } catch (error) {
       Alert.alert('Error', 'Failed to submit the request.');
       console.error(error);
@@ -73,7 +81,6 @@ const DiagnosticRequestPage = () => {
         <Text style={styles.nameText}>Hailey</Text>
         <IconButton
           icon="broom"
-        
           size={24}
           onPress={handleClear}
         />
@@ -103,7 +110,6 @@ const DiagnosticRequestPage = () => {
         />
         <IconButton
           icon="send"
-        
           size={30}
           onPress={handleSubmit}
         />

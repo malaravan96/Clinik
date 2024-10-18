@@ -29,9 +29,10 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
         <Stack.Screen name="+not-found" />
         <Stack.Screen name="index" />
+        <Stack.Screen name="access" options={{ headerShown: false }} />
         {/* Remove the component prop as it's not needed */}
         {/* <Stack.Screen name="Home" component={HomePage} /> */}
         {/* <Stack.Screen name="Doctors" component={DoctorList} /> */}
