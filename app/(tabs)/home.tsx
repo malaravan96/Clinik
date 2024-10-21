@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { Card, IconButton } from 'react-native-paper';
 import { useRouter } from 'expo-router';
+import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const HomePage = () => {
   const [visible, setVisible] = useState(false);
@@ -85,9 +86,9 @@ const HomePage = () => {
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
               <View style={[styles.iconWrapper, { backgroundColor: '#9c27b0' }]}>
-                <IconButton icon="flask" size={30} />
+              <MaterialCommunityIcons name="robot-love-outline" size={24} color="black" />
               </View>
-              <Text style={styles.title}> Ai Assistant </Text>
+              <Text style={styles.title}> Hailey </Text>
             </View>
           </Card>
         </TouchableOpacity>
@@ -110,9 +111,9 @@ const HomePage = () => {
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
               <View style={[styles.iconWrapper, { backgroundColor: '#607d8b' }]}>
-                <IconButton icon="book-open-page-variant" size={30} />
+              <AntDesign name="calendar" size={24} color="black" />
               </View>
-              <Text style={styles.title}>Appoinment</Text>
+              <Text style={styles.title}>Appointment</Text>
             </View>
           </Card>
         </TouchableOpacity>
