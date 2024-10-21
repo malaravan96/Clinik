@@ -5,7 +5,7 @@ import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { Fontisto } from '@expo/vector-icons';
+import { FontAwesome6, Fontisto, MaterialCommunityIcons } from '@expo/vector-icons';
 
 
 
@@ -27,7 +27,7 @@ export default function TabLayout() {
           ),
         }}
       />
-         <Tabs.Screen
+         {/* <Tabs.Screen
         name="doctor"
         options={{
           title: 'doctor',
@@ -37,6 +37,7 @@ export default function TabLayout() {
         }}
       />
       
+      
       <Tabs.Screen
         name="explore"
         options={{
@@ -45,7 +46,17 @@ export default function TabLayout() {
             <AntDesign name="calendar" size={24} color="black" />          ),
         }}
       />
+       <Tabs.Screen
+        name="chatbot"
+        options={{
+          title: 'chatbot',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name="robot-love-outline" size={24} color="black" />
+          ),
+        }}
+      /> */}
        
     </Tabs>
+    
   );
 }
