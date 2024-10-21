@@ -14,6 +14,7 @@ import axios from 'axios';
 import { useWindowDimensions } from 'react-native';
 import CustomDay from '../(voice)/CustomDay'; // Adjust the path if necessary
 import { DayComponentProps, Dot } from './types';
+import CreateAppointment from '../appoinment/components/create';
 
 type Appointment = {
   appointmentId: string;
@@ -112,11 +113,15 @@ const Explore: React.FC = () => {
 
   return (
     <View style={[styles.container, { width: width - 20 }]}>
+      {/* CreateAppointment component before the Calendar */}
+      <CreateAppointment />
+
       {loading ? (
         <ActivityIndicator size="large" color="#00B0FF" />
       ) : errorMessage ? (
         <Text style={{ color: 'red' }}>{errorMessage}</Text>
       ) : (
+        
         <Calendar
           markedDates={appointments}
           onDayPress={handleDayPress}
@@ -127,6 +132,7 @@ const Explore: React.FC = () => {
           )}
           style={styles.calendar}
         />
+
       )}
 
       {selectedAppointment && (
