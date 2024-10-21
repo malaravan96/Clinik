@@ -43,7 +43,7 @@ const HomePage = () => {
         {/* Doctors Card */}
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => router.push('/doctor')}
+          onPress={() => router.push('/voice/doctor')}
         >
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
@@ -80,13 +80,14 @@ const HomePage = () => {
         </TouchableOpacity>
 
         {/* Labs Card */}
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem}
+          onPress={() => router.push('/voice/chatbot')}>
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
               <View style={[styles.iconWrapper, { backgroundColor: '#9c27b0' }]}>
                 <IconButton icon="flask" size={30} />
               </View>
-              <Text style={styles.title}>Labs</Text>
+              <Text style={styles.title}> Ai Assistant </Text>
             </View>
           </Card>
         </TouchableOpacity>
@@ -104,13 +105,14 @@ const HomePage = () => {
         </TouchableOpacity>
 
         {/* Related Articles Card */}
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem}
+         onPress={() => router.push('/voice/explore')}>
           <Card style={styles.menuCard}>
             <View style={styles.cardContent}>
               <View style={[styles.iconWrapper, { backgroundColor: '#607d8b' }]}>
                 <IconButton icon="book-open-page-variant" size={30} />
               </View>
-              <Text style={styles.title}>Articles</Text>
+              <Text style={styles.title}>Appoinment</Text>
             </View>
           </Card>
         </TouchableOpacity>
