@@ -9,15 +9,16 @@ export type AppointmentFilter = {
   export type Appointment = {
     [x: string]: any;
     appointmentId: string;
-    practitionerId: string;
+    providerId: string;
     patientId: string;
-    // Adjust the date types to be compatible with React Native DateTime handling
+    
     appointmentDate: string | Date | null; 
     appointmentTime: string | Date | null;
     status: string | null;
     reasonForVisit: string;
     createdAt: string | Date | null; // Use string for date representation in mobile
     updatedAt: string | Date | null;
+    type:string | any
   };
   
   // Props for updating an appointment
