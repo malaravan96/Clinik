@@ -126,7 +126,6 @@ const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({
       <Dialog visible={appointmentDialogVisible} onDismiss={closeAppointmentDialog}>
         <Dialog.Title>Book Appointment</Dialog.Title>
         <Dialog.Content>
-          <Text>Appointment booking form goes here...</Text>
           {doctor ? <AppointmentForm providerId={doctor.providerId} providerName={doctor.name}/> : <Text>No doctor selected.</Text>}
           
         </Dialog.Content>

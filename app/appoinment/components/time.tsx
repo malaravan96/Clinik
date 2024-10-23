@@ -6,6 +6,19 @@ import isBetween from 'dayjs/plugin/isBetween';
 
 dayjs.extend(isBetween);
 
+interface Schedule {
+  scheduleId: string;
+  providerId: string;
+  fromDate: string;
+  toDate: string;
+  fromTime: string;
+  toTime: string;
+  weekDay: string;
+  location: string;
+  status: string;
+  name: string | null;
+}
+
 interface DatePickerComponentProps {
   onDateTimeSelected: (date: Date, fromTime: string, toTime: string, duration: string) => void;
   providerId: string;
@@ -15,7 +28,7 @@ const ProviderDateComponent = ({ onDateTimeSelected, providerId }: DatePickerCom
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [weekDays, setWeekDays] = useState<string[]>([]);
   const [timeRange, setTimeRange] = useState<{ fromTime: string; toTime: string }>({ fromTime: '', toTime: '' });
-  const [schedules, setSchedules] = useState<any[]>([]);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -31,15 +44,10 @@ const ProviderDateComponent = ({ onDateTimeSelected, providerId }: DatePickerCom
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
-  const isWeekdaySelectable = (date: Dayjs) => {
-    const day = date.day();
-    return weekDays.includes(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day]);
-  };
-
   const generateTimeSlots = (fromTime: string, toTime: string) => {
     const timeSlotsArray: string[] = [];
-    let current = dayjs(fromTime, 'HH:mm A');
-    let end = dayjs(toTime, 'HH:mm A');
+    let current = dayjs(fromTime, 'hh:mm A');
+    let end = dayjs(toTime, 'hh:mm A');
 
     if (end.isBefore(current)) {
       end = end.add(12, 'hours');
@@ -63,32 +71,6 @@ const ProviderDateComponent = ({ onDateTimeSelected, providerId }: DatePickerCom
     if (schedule) {
       setTimeRange({ fromTime: schedule.fromTime, toTime: schedule.toTime });
       generateTimeSlots(schedule.fromTime, schedule.toTime);
-    }
-  };
-
-  const handleTimeSlotSelect = (timeSlot: string) => {
-    if (
-      appointments.some(
-        appointment =>
-          appointment.appointmentTime === timeSlot && dayjs(appointment.appointmentDate).isSame(selectedDate, 'day')
-      )
-    ) {
-      return;
-    }
-
-    setSelectedTimeSlot(timeSlot);
-
-    const [time, modifier] = timeSlot.split(' ');
-    const [hours, minutes] = time.split(':');
-    const selectedDateTime = selectedDate
-      ?.hour(modifier === 'PM' ? (parseInt(hours) % 12) + 12 : parseInt(hours))
-      .minute(parseInt(minutes));
-
-    if (selectedDateTime) {
-      const dateTimeFormatted = selectedDateTime.format('YYYY-MM-DD HH:mm');
-      console.log(`Selected Date and Time: ${dateTimeFormatted}`);
-
-      onDateTimeSelected(selectedDateTime.toDate(), timeRange.fromTime, timeRange.toTime, timeSlot);
     }
   };
 
@@ -130,83 +112,91 @@ const ProviderDateComponent = ({ onDateTimeSelected, providerId }: DatePickerCom
     }
   }, [providerId]);
 
+  // Create a markedDates object to show available dates on the calendar
+  const markedDates = schedules.reduce((acc, schedule) => {
+    const fromDate = dayjs(schedule.fromDate);
+    const toDate = dayjs(schedule.toDate);
+    for (let date = fromDate; date.isBefore(toDate.add(1, 'day')); date = date.add(1, 'day')) {
+      acc[date.format('YYYY-MM-DD')] = { marked: true, dotColor: 'blue' }; // Customize as needed
+    }
+    return acc;
+  }, {} as { [key: string]: { marked: boolean; dotColor?: string } });
+
+  // Mark all dates not within the range of schedules as not selectable
+  Object.keys(markedDates).forEach(date => {
+    const dayDate = dayjs(date);
+    const isAvailable = schedules.some(schedule => {
+      const fromDate = dayjs(schedule.fromDate);
+      const toDate = dayjs(schedule.toDate);
+      return dayDate.isBetween(fromDate, toDate, null, '[]'); // Inclusive range
+    });
+    
+    // If the date is not available, just do not add it to markedDates.
+    if (!isAvailable) {
+      delete markedDates[date]; // Remove if not available
+    }
+  });
+
+  const handleTimeSlotSelect = (slot: string) => {
+    if (selectedTimeSlot === slot) {
+      // Deselect if already selected
+      setSelectedTimeSlot(null);
+    } else {
+      // Set selected time slot
+      setSelectedTimeSlot(slot);
+      // Call the onDateTimeSelected function with necessary parameters
+      if (selectedDate) {
+        const appointmentDateTime = dayjs(selectedDate).format('YYYY-MM-DD') + ' ' + slot;
+        const duration = '15 mins'; // Adjust this according to your requirement
+        onDateTimeSelected(new Date(appointmentDateTime), timeRange.fromTime, timeRange.toTime, duration);
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Select Date:</Text>
       <Calendar
         onDayPress={(day: { dateString: string; }) => handleDateSelect(day.dateString)}
         markedDates={{
-          [selectedDate?.format('YYYY-MM-DD') || '']: { selected: true, marked: true, selectedColor: '#4caf50' },
-        }}
-        theme={{
-          selectedDayBackgroundColor: '#4caf50',
-          todayTextColor: '#4caf50',
+          ...markedDates,
+          [selectedDate?.format('YYYY-MM-DD') || '']: { selected: true, marked: true, dotColor: 'blue' },
         }}
       />
-      {timeRange.fromTime && timeRange.toTime && (
-        <Text style={styles.timeRange}>
-          Selected Time Range: {timeRange.fromTime} - {timeRange.toTime}
-        </Text>
-      )}
-      {timeSlots.length > 0 && (
-        <ScrollView horizontal style={styles.timeSlotContainer}>
-          {timeSlots.map((slot, index) => {
-            const isBooked = appointments.some(
-              appointment =>
-                appointment.appointmentTime === slot && dayjs(appointment.appointmentDate).isSame(selectedDate, 'day')
-            );
-
-            return (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.timeSlotButton,
-                  selectedTimeSlot === slot ? styles.selected : isBooked ? styles.booked : styles.available,
-                ]}
-                onPress={() => handleTimeSlotSelect(slot)}
-                disabled={isBooked}
-              >
-                <Text style={styles.timeSlotText}>{slot}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      )}
+      <Text style={styles.label}>Select Time Slot:</Text>
+      <ScrollView horizontal>
+        {timeSlots.map(slot => (
+          <TouchableOpacity
+            key={slot}
+            onPress={() => handleTimeSlotSelect(slot)}
+            style={[styles.timeSlot, selectedTimeSlot === slot && styles.selectedTimeSlot]}
+          >
+            <Text>{slot}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
+    padding: 16,
   },
   label: {
     fontSize: 18,
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  timeRange: {
-    fontSize: 16,
-    marginVertical: 10,
+  timeSlot: {
+    padding: 8,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 4,
+    marginHorizontal: 4,
   },
-  timeSlotContainer: {
-    marginTop: 20,
-  },
-  timeSlotButton: {
-    padding: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
-  },
-  available: {
-    backgroundColor: '#f0f0f0',
-  },
-  selected: {
-    backgroundColor: '#4caf50',
-  },
-  booked: {
-    backgroundColor: '#f44336',
-  },
-  timeSlotText: {
-    color: '#fff',
+  selectedTimeSlot: {
+    backgroundColor: 'lightblue',
   },
 });
 

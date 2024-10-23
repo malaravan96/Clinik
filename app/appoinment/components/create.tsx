@@ -180,8 +180,8 @@ const AppointmentForm = React.forwardRef<{ submitForm: () => void }, Appointment
 
     return (
       
-       <>
-          
+       
+          <>
             <Typography variant="h6">{providerName}</Typography>
             <Box
               sx={{
