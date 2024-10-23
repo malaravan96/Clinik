@@ -12,6 +12,7 @@ import { Card, Provider } from 'react-native-paper';
 import DoctorDetailsDialog from '../doctor/componets/page';
 import { theme } from '@/assets/theme';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import CreateHealthcareProviderForm from '../voiceer/provider';
 
 // Define the type for a doctor
 interface Doctor {
@@ -98,7 +99,7 @@ const DoctorList: React.FC = () => {
   };
 
   const renderDoctor = ({ item }: { item: Doctor }) => (
-    <Card style={styles.card} onPress={() => showDialog(item)}>
+    <><Card style={styles.card} onPress={() => showDialog(item)}>
       <Card.Content style={styles.cardContent}>
         <View style={styles.avatarContainer}>
           <Image source={item.gender === 'M' ? MaleImg : FemaleImg} style={styles.avatar} />
@@ -116,11 +117,12 @@ const DoctorList: React.FC = () => {
           </View>
         </View>
       </Card.Content>
-    </Card>
+    </Card></>
   );
 
   return (
     <Provider>
+      <CreateHealthcareProviderForm />
       <View>
         <FlatList
           data={doctors.slice(0, 5)} // Display only the first 5 doctors
