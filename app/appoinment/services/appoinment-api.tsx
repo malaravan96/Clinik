@@ -3,7 +3,7 @@ import { Appointment, AppoinmentApiResponse } from '../components/types';
 import Toast from 'react-native-toast-message';
 import { SearchRequestBody } from '@/app/types/search';
 
-const API_ENDPOINT = `https://careapps.azurewebsites.net/api/Appointment`;
+const API_ENDPOINT = `https://pyskedev.azurewebsites.net/api/ProvidersAppointment`;
 
 export const searchAppoinment = async (searchData: SearchRequestBody): Promise<AppoinmentApiResponse> => {
   const response = await axios.post(`${API_ENDPOINT}/SearchAppoinment`, searchData, {
@@ -18,7 +18,7 @@ export const searchAppoinment = async (searchData: SearchRequestBody): Promise<A
 
 export const createAppoinment = async (createData: Appointment): Promise<any> => {
   try {
-    const response = await axios.post(`${API_ENDPOINT}/CreateAppointment`, createData, {
+    const response = await axios.post(`${API_ENDPOINT}/CreateProvidersAppointment`, createData, {
       headers: {
         'Content-Type': 'application/json',
         Accept: '*/*',
