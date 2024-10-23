@@ -3,6 +3,7 @@ import { Text, Image, StyleSheet, View, TouchableOpacity } from 'react-native';
 import { Dialog, Portal, Button, IconButton } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReviewList from './review';
+import AppointmentForm from '@/app/appoinment/components/create';
 
 interface Doctor {
   providerId: string;
@@ -30,9 +31,13 @@ const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({
   imageSource,
 }) => {
   const [ratingDialogVisible, setRatingDialogVisible] = useState(false);
+  const [appointmentDialogVisible, setAppointmentDialogVisible] = useState(false);
 
   const openRatingDialog = () => setRatingDialogVisible(true);
   const closeRatingDialog = () => setRatingDialogVisible(false);
+
+  const openAppointmentDialog = () => setAppointmentDialogVisible(true);
+  const closeAppointmentDialog = () => setAppointmentDialogVisible(false);
 
   return (
     <Portal>
@@ -100,7 +105,7 @@ const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({
         
         {/* Dialog Actions */}
         <Dialog.Actions>
-          <Button mode="contained" onPress={() => {}} style={styles.appointmentButton}>
+          <Button mode="contained" onPress={openAppointmentDialog} style={styles.appointmentButton}>
             Get Appointment
           </Button>
         </Dialog.Actions>
@@ -114,6 +119,20 @@ const DoctorDetailsDialog: React.FC<DoctorDetailsDialogProps> = ({
         </Dialog.Content>
         <Dialog.Actions>
           <Button onPress={closeRatingDialog}>Close</Button>
+        </Dialog.Actions>
+      </Dialog>
+
+      {/* Appointment dialog */}
+      <Dialog visible={appointmentDialogVisible} onDismiss={closeAppointmentDialog}>
+        <Dialog.Title>Book Appointment</Dialog.Title>
+        <Dialog.Content>
+          <Text>Appointment booking form goes here...</Text>
+          {doctor ? <AppointmentForm providerId={doctor.providerId} providerName={doctor.name}/> : <Text>No doctor selected.</Text>}
+          
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={closeAppointmentDialog}>Cancel</Button>
+          <Button mode="contained" onPress={() => {}}>Confirm</Button>
         </Dialog.Actions>
       </Dialog>
     </Portal>

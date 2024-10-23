@@ -113,8 +113,8 @@ const Explore: React.FC = () => {
 
   return (
     <View style={[styles.container, { width: width - 20 }]}>
-      {/* CreateAppointment component before the Calendar */}
-      <CreateAppointment />
+      
+     
 
       {loading ? (
         <ActivityIndicator size="large" color="#00B0FF" />

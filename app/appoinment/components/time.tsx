@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 import dayjs, { Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 
@@ -53,18 +53,16 @@ const ProviderDateComponent = ({ onDateTimeSelected, providerId }: DatePickerCom
     setTimeSlots(timeSlotsArray);
   };
 
-  const handleDateChange = (event: any, selectedDateValue?: Date | undefined) => {
-    if (selectedDateValue) {
-      const date = dayjs(selectedDateValue);
-      setSelectedDate(date);
+  const handleDateSelect = (dateString: string) => {
+    const date = dayjs(dateString);
+    setSelectedDate(date);
 
-      const day = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][date.day()];
-      const schedule = schedules.find(item => item.weekDay === day);
+    const day = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][date.day()];
+    const schedule = schedules.find(item => item.weekDay === day);
 
-      if (schedule) {
-        setTimeRange({ fromTime: schedule.fromTime, toTime: schedule.toTime });
-        generateTimeSlots(schedule.fromTime, schedule.toTime);
-      }
+    if (schedule) {
+      setTimeRange({ fromTime: schedule.fromTime, toTime: schedule.toTime });
+      generateTimeSlots(schedule.fromTime, schedule.toTime);
     }
   };
 
@@ -135,11 +133,15 @@ const ProviderDateComponent = ({ onDateTimeSelected, providerId }: DatePickerCom
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Select Date:</Text>
-      <DateTimePicker
-        value={selectedDate?.toDate() || new Date()}
-        mode="date"
-        display="default"
-        onChange={handleDateChange}
+      <Calendar
+        onDayPress={(day: { dateString: string; }) => handleDateSelect(day.dateString)}
+        markedDates={{
+          [selectedDate?.format('YYYY-MM-DD') || '']: { selected: true, marked: true, selectedColor: '#4caf50' },
+        }}
+        theme={{
+          selectedDayBackgroundColor: '#4caf50',
+          todayTextColor: '#4caf50',
+        }}
       />
       {timeRange.fromTime && timeRange.toTime && (
         <Text style={styles.timeRange}>
