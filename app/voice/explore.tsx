@@ -12,7 +12,7 @@ import {
 import { Calendar, DateData } from 'react-native-calendars';
 import axios from 'axios';
 import { useWindowDimensions } from 'react-native';
-import CustomDay from '../(voice)/CustomDay'; // Adjust the path if necessary
+import CustomDay from '../voiceer/CustomDay'; // Adjust the path if necessary
 import { DayComponentProps, Dot } from './types';
 import CreateAppointment from '../appoinment/components/create';
 
