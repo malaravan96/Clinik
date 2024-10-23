@@ -22,7 +22,7 @@
     "@expo/vector-icons": "^14.0.2",
     "@mui/material": "^6.1.5",
     "@react-native-community/checkbox": "^0.5.17",
-    "@react-native-community/datetimepicker": "^8.2.0",
+    "@react-native-community/datetimepicker": "8.0.1",
     "@react-native-picker/picker": "^2.8.1",
     "@react-native-voice/voice": "^3.2.4",
     "@react-navigation/native": "^6.1.18",
@@ -58,7 +58,8 @@
     "react-native-toast-message": "^2.2.1",
     "react-native-vector-icons": "^10.2.0",
     "react-native-voice": "^0.3.0",
-    "react-native-web": "~0.19.10"
+    "react-native-web": "~0.19.10",
+    "expo-crypto": "~13.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
