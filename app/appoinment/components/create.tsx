@@ -1,172 +1,341 @@
-import React, { Fragment, useState, useEffect } from 'react';
-import { View, TextInput, Button, Text, Modal, Platform } from 'react-native';
-import { useUser } from '../../access/userContext';
-import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { createAppoinment } from '../services/appoinment-api';
-import HealthcareProviderAutocomplete from '@/app/autocompletes/provider';
+"use client";
 
-export const CreateAppointment = () => {
-  // ** States
-  const [open, setOpen] = useState<boolean>(false);
-  const [currentStep, setCurrentStep] = useState<number>(1);
-  const [selectedPractitionerId, setSelectedPractitionerId] = useState<string | null>(null); // State for providerId
-  const [Appointment, setAppointment] = useState({
-    appointmentId: '',
-    providerId: '',
-    patientId: '',
-    appointmentDate: new Date(),
-    appointmentTime: '',
-    status: 'Scheduled',
-    reasonForVisit: '',
-    createdAt: null,
-    updatedAt: null,
-    type: ''
+import React, { useState, forwardRef } from "react";
+import {
+  TextField,
+  Button,
+  Box,
+  MenuItem,
+  Snackbar,
+  Alert,
+  AlertColor,
+  Container,
+  CircularProgress,
+  Grid,
+  Typography,
+  Card,
+  CardContent,
+  CardActions,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  Select,
+  SelectChangeEvent,
+  InputLabel,
+} from "@mui/material";
+import axios from "axios";
+import ProviderDateComponent from "./time";
+import dayjs from "dayjs";
+
+interface AppointmentFormProps {
+  providerId: string;
+  providerName: string | null | any ; 
+}
+
+interface FormData {
+  appointmentId: string;
+  providerId: string;
+  patientId: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  weekDay: string;
+  status: string;
+  type: string;
+  insurance: string;
+  reasonForVisit: string;
+}
+const AppointmentForm = React.forwardRef<{ submitForm: () => void }, AppointmentFormProps>(
+  ({ providerId, providerName }, ref) => {
+  const [formData, setFormData] = useState<FormData>({
+    appointmentId: "",
+    providerId: providerId,
+    patientId: "",
+    appointmentDate: "",
+    appointmentTime: "",
+    weekDay: "",
+    status: "",
+    type: "",
+    insurance: "",
+    reasonForVisit: "",
   });
 
-  const { user } = useUser();
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1); // Step for form navigation
+  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const statusOptions = ["Scheduled", "Completed", "Cancelled"];
+  const [visitType, setVisitType] = useState<string>(""); // Fixed visitType state
+  const [insurance, setInsurance] = useState<string>(""); // Fixed insurance state
+  const [reason, setReason] = useState<string>(""); // Fixed reason state
+  const [visitedBefore, setVisitedBefore] = useState<boolean>(false); // Fixed visitedBefore state
 
-  const handleChange = (name: string, value: string | Date | null) => {
-    setAppointment({
-      ...Appointment,
-      [name]: value
-    });
+  const generateTimeSlots = () => {
+    const slots = [];
+    let start = 9;
+    const end = 18;
+
+    for (let hour = start; hour <= end; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const formattedHour = hour > 12 ? (hour - 12).toString().padStart(2, "0") : hour.toString().padStart(2, "0");
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const formattedMinute = minute === 0 ? "00" : minute.toString().padStart(2, "0");
+        slots.push(`${formattedHour}:${formattedMinute} ${ampm}`);
+      }
+    }
+
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
+
     try {
-      const updatedAppointment = {
-        ...Appointment,
-        providerId: selectedPractitionerId || '',
-      };
-
-      await createAppoinment(updatedAppointment);
-
-      // Clear form fields after successful submission
-      setAppointment({
-        appointmentId: '',
-        providerId: '',
-        patientId: '',
-        appointmentDate: new Date(),
-        appointmentTime: '',
-        status: 'Scheduled',
-        reasonForVisit: '',
-        createdAt: null,
-        updatedAt: null,
-        type: ''
-      });
-
-      setOpen(false);
-      setCurrentStep(1); // Reset to the first step
+      const response = await axios.post(
+        "https://pyskedev.azurewebsites.net/api/ProvidersAppointment/CreateProvidersAppointment",
+        formData
+      );
+      console.log("Appointment created:", response.data);
+      setSnackbarMessage("Appointment created successfully!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+      resetForm();
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error("Error creating appointment:", error);
+      setSnackbarMessage("Error creating appointment. Please try again.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (user.selectedpatientId) {
-      setAppointment(prevAppointment => ({
-        ...prevAppointment,
-        patientId: user.selectedpatientId || ''
-      }));
-    }
-  }, [user.selectedpatientId]);
+  const resetForm = () => {
+    setFormData({
+      appointmentId: "",
+      providerId: "",
+      patientId: "",
+      appointmentDate: "",
+      appointmentTime: "",
+      weekDay: "",
+      status: "",
+      type: "",
+      insurance: "",
+      reasonForVisit: "",
+    });
+    setSelectedTimeSlot(null);
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
+
+
+  const handleNext = () => {
+    setStep(2); // Move to the summary step
+  };
+
+  const handleBack = () => {
+    setStep(1); // Go back to the form step
+  };
+
+  const handleInsuranceChange = (event: SelectChangeEvent<string>) => {
+    setFormData({ ...formData, insurance: event.target.value });
+  };
+
+  // Handlers for the new fields
+  const handleVisitTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, type: e.target.value });
+  };
+
+  const handleReasonChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setReason(e.target.value);
+    setFormData({ ...formData, reasonForVisit: e.target.value });
+  };
+
+  const handleVisitedBeforeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVisitedBefore(e.target.checked);
+  };
+  const handleDateTimeSelected = (date: Date, fromTime: string, toTime: string, selectedTimeSlot: string) => {
+    const formattedDate = dayjs(date).format('YYYY-MM-DD')
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      appointmentDate: formattedDate,
+      appointmentTime: selectedTimeSlot // Store the selected time slot
+    }))
+  }
 
   return (
-    <Fragment>
-      <Button title="Add Appointment" onPress={() => setOpen(true)} />
-      <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
-        <View style={{ padding: 20 }}>
-          <Text style={{ fontSize: 20, marginBottom: 10 }}>Add Appointment</Text>
-          
-          {/* Stepper */}
-          <View style={{ marginBottom: 20 }}>
-            <Text style={{ fontWeight: 'bold' }}>Step {currentStep} of 3</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ flex: 1, textAlign: 'center' }}>1. Patient & Practitioner</Text>
-              <Text style={{ flex: 1, textAlign: 'center' }}>2. Appointment Details</Text>
-              <Text style={{ flex: 1, textAlign: 'center' }}>3. Review & Submit</Text>
-            </View>
-          </View>
-
-          {/* Step 1: Select Patient and Practitioner */}
-          {currentStep === 1 && (
-            <View>
-              {/* <HealthcareProviderAutocomplete onSelectProvider={setSelectedPractitionerId} /> */}
+    <Container>
+      <Card>
+        <CardContent>
+          {step === 1 && (
+            <Box sx={{ mt: 2 }}>
+            
+            <ProviderDateComponent onDateTimeSelected={handleDateTimeSelected} providerId={providerId}/>
              
-              <Picker
-                selectedValue={Appointment.status}
-                onValueChange={(itemValue) => handleChange('status', itemValue)}
-                aria-label='Status'
+
+              <TextField
+                label="Weekday"
+                select
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                name="weekDay"
+                value={formData.weekDay}
+                onChange={handleInputChange}
+                required
               >
-                <Picker.Item label="Scheduled" value="Scheduled" />
-                <Picker.Item label="Completed" value="Completed" />
-                <Picker.Item label="Cancelled" value="Cancelled" />
-                <Picker.Item label="In Progress" value="In Progress" />
-              </Picker>
+                {weekDays.map((day) => (
+                  <MenuItem key={day} value={day}>
+                    {day}
+                  </MenuItem>
+                ))}
+              </TextField>
 
-              <TextInput
+              <TextField
+                label="Status"
+                select
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                required
+              >
+                {statusOptions.map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {status}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <FormControl component="fieldset" fullWidth>
+                <FormLabel component="legend">Set type of visit</FormLabel>
+                <RadioGroup value={formData.type} onChange={handleVisitTypeChange}>
+                  <FormControlLabel value="Video call" control={<Radio />} label="Video call" />
+                  <FormControlLabel value="Hospital Visit" control={<Radio />} label="Hospital Visit" />
+                </RadioGroup>
+              </FormControl>
+              <FormControl fullWidth margin="normal">
+  <InputLabel id="insurance-label">Do You Have Insurance?</InputLabel>
+  <Select
+    labelId="insurance-label"
+    id="insurance-select"
+    value={formData.insurance}
+    label="Do You Have Insurance?" // This works with InputLabel
+    onChange={handleInsuranceChange}
+  >
+    <MenuItem value="Yes">Yes</MenuItem>
+    <MenuItem value="No">No</MenuItem>
+  </Select>
+</FormControl>
+
+
+              <TextField
+                label="Reason For Visit"
                 placeholder="Reason For Visit"
-                value={Appointment.reasonForVisit}
-                onChangeText={(value) => handleChange('reasonForVisit', value)}
                 multiline
-                numberOfLines={3}
-                style={{ marginBottom: 15, borderWidth: 1, padding: 10 }}
+                rows={3}
+                fullWidth
+                margin="normal"
+                name="reasonForVisit"
+                value={reason}
+                onChange={handleReasonChange}
+                required
               />
 
-              
-              {Platform.OS === 'ios' || Platform.OS === 'android' ? (
-                <DateTimePicker
-                  value={Appointment.appointmentDate}
-                  aria-label='Appointment Date'
-                  mode="date"
-                  display="default"
-                  onChange={(event, selectedDate) => handleChange('appointmentDate', selectedDate || new Date())}
-                />
-              ) : (
-                <TextInput
-                  value={Appointment.appointmentDate.toISOString().split('T')[0]}
-                  editable={false}
-                  style={{ marginBottom: 15, borderWidth: 1, padding: 10 }}
-                />
-              )}
-
-              <Text>Appointment Time</Text>
-              <TextInput
-                placeholder="Time"
-                value={Appointment.appointmentTime}
-                onChangeText={(value) => handleChange('appointmentTime', value)}
-                style={{ marginBottom: 15, borderWidth: 1, padding: 10 }}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={visitedBefore}
+                    onChange={handleVisitedBeforeChange}
+                  />
+                }
+                label="Have you visited us before?"
               />
-
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Button title="Next" onPress={() => setCurrentStep(2)} />
-              </View>
-            </View>
+            </Box>
           )}
 
-          {/* Step 2: Set Appointment Details */}
-          {currentStep === 2 && (
-            <View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Button title="Back" onPress={() => setCurrentStep(1)} />
-                <Button title="Next" onPress={() => setCurrentStep(3)} />
-              </View>
-            </View>
+          {step === 2 && (
+            <Box sx={{ mt: 2 }}>
+              {/* Summary of the form */}
+              <Typography variant="h6">Summary</Typography>
+        
+              <Typography>
+                <strong>Appointment Date:</strong> {formData.appointmentDate}
+              </Typography>
+              <Typography>
+                <strong>Appointment Time:</strong> {formData.appointmentTime}
+              </Typography>
+              <Typography>
+                <strong>Weekday:</strong> {formData.weekDay}
+              </Typography>
+              <Typography>
+                <strong>Status:</strong> {formData.status}
+              </Typography>
+              <Typography>
+                <strong>Visit Type:</strong> {formData.type}
+              </Typography>
+              <Typography>
+                <strong>Insurance:</strong> {formData.insurance}
+              </Typography>
+              <Typography>
+                <strong>Reason for Visit:</strong> {formData.reasonForVisit}
+              </Typography>
+              <Typography>
+                <strong>Visited Before:</strong> {visitedBefore ? "Yes" : "No"}
+              </Typography>
+            </Box>
           )}
+        </CardContent>
+        <CardActions>
+          {step === 1 && (
+            <Button variant="contained" onClick={handleNext} disabled={loading}>
+              Next
+            </Button>
+          )}
+          {step === 2 && (
+            <Button variant="contained" onClick={handleBack} disabled={loading}>
+              Back
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
+            disabled={loading || step === 1}
+          >
+            Submit
+          </Button>
+          {loading && <CircularProgress />}
+        </CardActions>
+      </Card>
 
-          {/* Step 3: Review & Submit */}
-          {currentStep === 3 && (
-            <View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Button title="Back" onPress={() => setCurrentStep(2)} />
-                <Button title="Submit" onPress={handleSubmit} />
-              </View>
-            </View>
-          )}
-        </View>
-      </Modal>
-    </Fragment>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
-};
-export default CreateAppointment;
+});
+
+export default AppointmentForm;
